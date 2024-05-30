@@ -1,35 +1,59 @@
-U = [(1, 2), (1, 5), (1, 4), (2, 3), (2, 4), (2, 5), (3, 5), (3, 6), (4, 5), (4, 7), (4, 8), (5, 6), (5, 8), (5, 9),
-     (7, 8), (8, 9)]
-w = [15, 14, 23, 19, 16, 15, 14, 26, 25, 23, 20, 24, 27, 18, 14, 18]
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-gr = [(y, x[0], x[1]) for x, y in zip(U, w)]
-connected = {1}
-
-# ищем связи, такие, что один из элементов есть, но не оба
-def find_interesting_connections(conn):
-    return [x for x in gr if (x[1] in conn or x[2] in conn) and not (x[1] in conn and x[2] in conn)]
-
-
-weight = 0
-# действуем "постоянно"
-while True:
-    # ищем интересующие
-    maybe = find_interesting_connections(connected)
-    # если таких нет, то все вершины уже связаны
-    if len(maybe) == 0:
-        break
-
-    # отсортируем по весу
-    maybe.sort(key=lambda x: x[0])
-    # найдем интересующее ребро - самое короткое
-    w, a, b = maybe[0]
-    # прибавляем вес
-    weight += w
-    # прибавляем в список соединенных обе вершины
-    # поскольку объект - множество, они не дублируются
-    connected.add(a)
-    connected.add(b)
-
-# когда вышли, значит все соединено
-# полученный вес - искомый
-print(weight)
+namespace Прима_и_Краскал_2._0
+{
+    //Прима
+    internal class Program
+    {
+        public class Edge
+        {
+            public int Versh1 { get; set; }
+            public int Versh2 { get; set; }
+            public int Weight { get; set; }
+            public Edge(int versh1, int versh2, int weight)
+            {
+                Versh1 = versh1;
+                Versh2 = versh2;
+                Weight = weight;
+            }
+        }
+        static void Main(string[] args)
+        {
+            Console.WriteLine("Введите количество вершин:");
+            int numVersh = Convert.ToInt32(Console.ReadLine());
+            Console.WriteLine("Введите количество ребер: ");
+            int numEdge = Convert.ToInt32(Console.ReadLine());
+            List<Edge> edges = new List<Edge>();
+            for (int i = 1; i <= numEdge; i++)
+            {
+                Console.WriteLine($"Введите вершины и вес ребра {i} через пробел: ");
+                string[] p = Console.ReadLine().Split(' ');
+                int versh1 = Convert.ToInt32(p[0]);
+                int versh2 = Convert.ToInt32(p[1]);
+                int weight = Convert.ToInt32(p[2]);
+                edges.Add(new Edge(versh1, versh2, weight));
+            }
+            var sortedEdges = edges.OrderBy(e => e.Weight).ToList();
+            List<int> derevo = new List<int>();
+            derevo.Add(1); // Начало с вершины 1
+            int sum = 0;
+            while (derevo.Count != numVersh)
+            {
+                foreach (var edge in sortedEdges)
+                {
+                    if ((derevo.Contains(edge.Versh1) && !derevo.Contains(edge.Versh2)) || (derevo.Contains(edge.Versh2) && !derevo.Contains(edge.Versh1)))
+                    {
+                        sum += edge.Weight;
+                        derevo.Add(derevo.Contains(edge.Versh1) ? edge.Versh2 : edge.Versh1);
+                        break;
+                    }
+                }
+            }
+            Console.WriteLine($"Длина минимального дерева: {sum}");
+        }
+    }
+}
