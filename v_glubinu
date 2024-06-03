@@ -1,34 +1,66 @@
-gr = [(1, 2), (2, 3), (1, 4), (4, 5), (3, 5), (2, 5), (5, 6), (6, 7), (6, 8), (9, 10), (9, 11), (10, 11)]
-white = list(range(1, 12))
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-
-def flatten(arr):
-    array = []
-    for i in arr:
-        if isinstance(i, int):
-            array.append(i)
-        if isinstance(i, list):
-            array += flatten(i)
-    return sorted(array)
-
-
-def find_deep(now):
-    # вершины, смежные с данной, но вторая вершина еще не серая
-    global white
-    interest = [x for x in gr if (now == x[0] and x[1] in white) or (now == x[1] and x[0] in white)]
-    for i in interest:
-        if i[0] in white:
-            white.remove(i[0])
-        if i[1] in white:
-            white.remove(i[1])
-    a = [now]
-    for i in [find_deep(x[0] if x[1] == now else x[1]) for x in interest]:
-        a.append(i)
-
-    return flatten(a)
-
-
-while True:
-    if len(white) == 0:
-        break
-    print(find_deep(white[0]))
+namespace В_глубину
+{
+    internal class Graph
+    {
+        public List<int>[] values;
+        public Graph(int v)
+        {
+            values = new List<int>[v];
+            for (int i = 0; i < v; i++)
+                values[i] = new List<int>();
+        }
+        public void AddE(int v, int w)
+        {
+            values[v].Add(w);
+            values[w].Add(v);
+        }
+        public void dfs(int v, bool[] visited, List<int> white)
+        {
+            white.Remove(v);
+            visited[v] = true;
+            Console.Write(v + " ");
+            foreach (int i in values[v])
+            {
+                if (visited[i] == false)
+                    dfs(i, visited, white);
+            }
+        }
+        static void Main(string[] args)
+        {
+            Console.Write("Введите кол-во вершин ");
+            int n = int.Parse(Console.ReadLine());
+            Console.WriteLine("Введите рёбра (нумерация вершин с нуля) для остановки end");
+            Graph graph = new Graph(n);
+            List<int> white_verts = new List<int>();
+            bool[] visited = new bool[n];
+            while (true)
+            {
+                string[] s = Console.ReadLine().Split(' ');
+                if (s[0] == "end")
+                    break;
+                int v1 = int.Parse(s[0]);
+                int v2 = int.Parse(s[1]);
+                if (!white_verts.Contains(v1))
+                { white_verts.Add(v1); }
+                if (!white_verts.Contains(v2))
+                { white_verts.Add(v2); }
+                graph.AddE(v1, v2);
+            }
+            int i = 0;
+            while (white_verts.Count != 0)
+            {
+                i++;
+                Console.Write($"вершины {i}-го связного подграфа [ ");
+                graph.dfs(white_verts[0], visited, white_verts);
+                Console.Write("]\n");
+            }
+            Console.WriteLine($"Количество компонент связности: {i}");
+        }
+    }
+}
