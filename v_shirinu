@@ -1,31 +1,66 @@
-gr = [(1, 2), (2, 3), (1, 4), (4, 5), (3, 5), (2, 5), (5, 6), (6, 7), (6, 8), (9, 10), (9, 11), (10, 11)]
-white = list(range(1, 12))
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-
-def broad_search(now):
-    global white
-    comp = {now}
-    black = []
-    while True:
-        interest = [x for x in gr if (now == x[0] and x[1] in white) or (now == x[1] and x[0] in white)]
-        for i in interest:
-            comp.add(i[0])
-            comp.add(i[1])
-
-            if i[0] in white:
-                white.remove(i[0])
-            if i[1] in white:
-                white.remove(i[1])
-
-        black.append(now)
-        could_next = [x for x in comp if x not in black]
-        if len(could_next) == 0:
-            return list(comp)
-
-        now = could_next[0]
-
-
-while True:
-    if len(white) == 0:
-        break
-    print(broad_search(white[0]))
+namespace В_ширину
+{
+    class Graph
+    {
+        public int v1;
+        public int v2;
+        public Graph(int v1, int v2)
+        {
+            this.v1 = v1;
+            this.v2 = v2;
+        }
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            List<Graph> graphs = new List<Graph>();
+            List<Graph> graph = new List<Graph>();
+            List<int> verts = new List<int>();
+            Dictionary<int, int> dict = new Dictionary<int, int>();
+            while (true)
+            {
+                Console.Write("Введите номер первой вершины: ");
+                string ss = Console.ReadLine();
+                if (ss == "end") { break; }
+                int f = Convert.ToInt32(ss);
+                Console.Write("Введите номер второй вершины: ");
+                int g = int.Parse(Console.ReadLine());
+                graphs.Add(new Graph(f, g));
+                graph.Add(new Graph(f, g));
+                if (!verts.Contains(f)) { verts.Add(f); }
+                if (!verts.Contains(g)) { verts.Add(g); }
+            }
+            List<int> vertscheked = new List<int>();
+            Console.Write("Введите номер вершины с которой хотите начать: ");
+            int koma = int.Parse(Console.ReadLine());
+            int a = verts.Count;
+            verts.Remove(koma);
+            vertscheked.Add(koma);
+            dict.Add(vertscheked[0], 1);
+            while (dict.Keys.Count != a)
+            {
+                for (int i = 0; i < graph.Count; i++)
+                {
+                    if (vertscheked.Contains(graph[i].v1) && (!vertscheked.Contains(graph[i].v2)))
+                    {
+                        dict.Add(graph[i].v2, dict[graphs[i].v1] + 1);
+                        vertscheked.Add(graph[i].v2);
+                    }
+                }
+                int j = -1;
+                foreach (int key in dict.Keys)
+                {
+                    if (key > j) { j = key; }
+                }
+                Console.WriteLine($"Ширина графа - {dict[j]}");
+            }
+        }
+    }
+}
