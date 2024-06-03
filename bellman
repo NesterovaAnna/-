@@ -1,60 +1,130 @@
-import math
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-# стандартный пример, на котором разбирали
-# gr = [(1, 2, 1), (2, 3, 8), (3, 4, 1), (4, 3, 2), (2, 4, 7), (3, 5, -5), (5, 4, 4), (1, 5, 3), (2, 5, 1)]
-# number_of_vertices = 5
+namespace Беллман
+{
+    class Graph
+    {
+        public int v1;
+        public int v2;
+        public int weight;
+        public Graph(int v1, int v2, int weight)
+        {
+            this.v1 = v1;
+            this.v2 = v2;
+            this.weight = weight;
+        }
+    }
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            List<Graph> graphs = new List<Graph>();
+            List<Graph> graph = new List<Graph>();
+            List<int> verts = new List<int>();
+            Dictionary<int, int> dict = new Dictionary<int, int>();
+            while (true)
+            {
+                Console.Write("Введите номер первой вершины: ");
+                string ss = Console.ReadLine();
+                if (ss == "end") { break; }
+                int f = Convert.ToInt32(ss);
+                Console.Write("Введите номер второй вершины: ");
+                int g = int.Parse(Console.ReadLine());
+                Console.Write("Введите вес ребра: ");
+                int h = int.Parse(Console.ReadLine());
+                graphs.Add(new Graph(f, g, h));
+                graph.Add(new Graph(f, g, h));
+                if (!verts.Contains(f)) { verts.Add(f); }
+                if (!verts.Contains(g)) { verts.Add(g); }
+            }
+            List<int> vertscheked = new List<int>();
+            Console.Write("Введите номер вершины с которой хотите начать: ");
+            int koma = int.Parse(Console.ReadLine());
+            int a = verts.Count;
+            List<Graph> graphss = new List<Graph>();
+            verts.Remove(koma);
+            vertscheked.Add(koma);
+            dict.Add(vertscheked[0], 0);
+            int problem = 0;
+            bool flag = false;
+            while (true)
+            {
+                foreach (int key in dict.Keys)
+                {
+                    if (key < -100)
+                    {
+                        flag = true;
+                        Console.WriteLine("В данном графе существует отрицательный цикл");
+                        break;
+                    }
+                }
+                if (flag == true) { break; }
+                problem++;
+                if (problem == 200) { Console.Clear(); Console.WriteLine("В данном графе существует отрицательный цикл"); break; }
+                int minr = 100000;
+                int j = -1;
+                for (int i = 0; i < graphs.Count; i++)
+                {
+                    if (vertscheked.Contains(graphs[i].v1) && !vertscheked.Contains(graphs[i].v2))
+                    {
+                        if (graphs[i].weight + dict[graphs[i].v1] < minr)
+                        {
+                            minr = graphs[i].weight + dict[graphs[i].v1];
+                            j = i;
+                        }
+                    }
+                }
+                if (j != -1)
+                {
+                    verts.Remove(graphs[j].v2);
+                    vertscheked.Add(graphs[j].v2);
+                    graphss.Add(graphs[j]);
+                    try { dict.Add(graphs[j].v2, minr); }
+                    catch (System.ArgumentException)
+                    {
+                        if (minr < dict[graphs[j].v2])
+                        {
+                            dict[graphs[j].v2] = minr;
+                        }
+                    }
+                    graphs.Remove(graphs[j]);
+                }
+                bool fg = true;
+                foreach (Graph g in graph)
+                {
+                    if (g.weight < 0 && vertscheked.Contains(g.v1) && vertscheked.Contains(g.v2))
+                    {
+                        if (dict[g.v1] + g.weight < dict[g.v2])
+                        {
+                            dict[g.v2] = dict[g.v1] + g.weight;
+                            Console.WriteLine("В данном графе существует отрицательный цикл");
+                            fg = false;
+                        }
+                    }
+                }
+                for (int i = 0; i < graphss.Count; i++)
+                {
+                    if (dict[graphss[i].v1] + graphss[i].weight < dict[graphss[i].v2])
+                    {
+                        dict[graphss[i].v2] = dict[graphss[i].v1] + graphss[i].weight;
+                    }
+                }
 
-# контур отрицательного веса для проверки
-# gr = [(1, 2, 4), (6, 2, 3), (3, 6, -2), (6, 5, -3), (1, 3, 4), (4, 1, 3), (3, 5, 4), (4, 3, 2), (5, 4, 1), (5, 7, -2), (7, 6, 2), (7, 8, 2), (8, 5, -2)]
-# number_of_vertices = 8
-
-# тестовый граф
-gr = [(1, 2, 7), (2, 3, 5), (3, 4, 2), (4, 5, 3), (5, 6, 3), (6, 9, 1), (9, 8, 2), (8, 7, 6), (7, 10, 4), (10, 11, 10), (11, 12, 3), (1, 6, 2), (2, 5, 8), (4, 7, 8), (5, 8, 1), (8, 11, 8), (9, 12, 1), (1, 5, 9), (2, 6, 2), (2, 4, 4), (3, 5, 9), (6, 8, 6), (5, 9, 7), (5, 7, 5), (4, 8, 3), (8, 10, 7), (7, 11, 4), (9, 11, 6), (8, 12, 5)]
-gr += [(x[1], x[0], x[2]) for x in gr]
-number_of_vertices = 12
-
-inf = math.inf
-start = 3
-
-class Matrix:
-    def __init__(self, number_of_vert):
-        self.array = []
-        for i in range(number_of_vert):
-            ar = [inf for _ in range(number_of_vert)]
-            for line in [x for x in gr if x[0] == i + 1]:
-                ar[line[1] - 1] = line[2]
-            self.array.append(ar)
-
-    def __str__(self):
-        return str("\n".join([str(x) for x in self.array]))
-
-    def get_column(self, index):
-        return [x[index] for x in self.array]
-
-
-matrix = Matrix(number_of_vertices)
-start -= 1  # сдвиг для индексов
-lam = [0 if i == start else inf for i in range(number_of_vertices)]
-
-for i in range(number_of_vertices + 1):
-    lam_before = lam[:]
-    for k in range(number_of_vertices):
-        lam[k] = min(lam[k], min([lam_before[x] + matrix.get_column(k)[x] for x in range(number_of_vertices)]))
-    if all([lam[x] == lam_before[x] for x in range(number_of_vertices)]):
-        break
-    if lam_before != lam and i == number_of_vertices:
-        print("Есть контур отрицательного веса!")
-        exit(0)
-
-for i in range(number_of_vertices):
-    path = [i]
-    if i != start:
-        length = lam[i]
-        while length != 0:
-            for j in range(number_of_vertices):
-                if lam[j] + matrix.get_column(path[-1])[j] == length:
-                    length -= matrix.get_column(path[-1])[j]
-                    path.append(j)
-                    break
-
-    print("to", i + 1, ", len =", lam[i], ", through", list(reversed([x + 1 for x in path])))
+            }
+            if (flag == false)
+            {
+                Console.Clear();
+                Console.WriteLine($"Расстояние от вершины {koma} до остальных: ");
+                dict = dict.OrderBy(x => x.Key).ToDictionary(x => x.Key, x => x.Value);
+                foreach (int vert in dict.Keys)
+                {
+                    Console.WriteLine($"{vert} - {dict[vert]}");
+                }
+            }
+        }
+    }
+}
